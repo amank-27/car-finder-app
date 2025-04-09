@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
 import CarList from '../components/CarList';
-import SearchFilters from '../components/SearchFilters';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [cars, setCars] = useState([]);
   const [filteredCars, setFilteredCars] = useState([]);
+  const [brand, setBrand] = useState('');
+  const [fuelType, setFuelType] = useState('');
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
+  const [seatingCapacity, setSeatingCapacity] = useState(0);
 
   useEffect(() => {
     const fetchCars = async () => {
       try {
         const response = await axios.get('https://carapi-dlav.onrender.com/cars');
         setCars(response.data);
-        setFilteredCars(response.data);
+        setFilteredCars(response.data);  // Initialize with all cars
       } catch (error) {
         console.error('Error fetching cars:', error);
       }
@@ -22,25 +25,111 @@ const Home = () => {
     fetchCars();
   }, []);
 
-  const filterCars = (filters) => {
-    let updatedCars = [...cars];
-    if (filters.brand) updatedCars = updatedCars.filter(car => car.brand === filters.brand);
-    if (filters.priceRange) updatedCars = updatedCars.filter(car => car.price >= filters.priceRange.min && car.price <= filters.priceRange.max);
-    if (filters.fuelType) updatedCars = updatedCars.filter(car => car.fuelType === filters.fuelType);
-    if (filters.seatingCapacity) updatedCars = updatedCars.filter(car => car.seatingCapacity === filters.seatingCapacity);
-    setFilteredCars(updatedCars);
+  const handleBrandChange = (e) => {
+    setBrand(e.target.value);
   };
 
+  const handleFuelTypeChange = (e) => {
+    setFuelType(e.target.value);
+  };
+
+  const handlePriceRangeChange = (e) => {
+    const { name, value } = e.target;
+    setPriceRange((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSeatingCapacityChange = (e) => {
+    setSeatingCapacity(e.target.value);
+  };
+
+  useEffect(() => {
+    const filtered = cars.filter((car) => {
+      const matchesBrand = car.brand.toLowerCase().includes(brand.toLowerCase());
+      const matchesFuelType = fuelType ? car.fuelType === fuelType : true;
+      const matchesPrice =
+        car.price >= priceRange.min && car.price <= priceRange.max;
+      const matchesSeating = seatingCapacity ? car.seatingCapacity == seatingCapacity : true;
+
+      return matchesBrand && matchesFuelType && matchesPrice && matchesSeating;
+    });
+
+    setFilteredCars(filtered);  // Apply all filters together
+  }, [brand, fuelType, priceRange, seatingCapacity, cars]);
+
   return (
+    <>
+   
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
-        <SearchFilters filterCars={filterCars} />
+        <div className="w-full max-w-lg">
+          {/* Brand search input */}
+          <input
+            type="text"
+            placeholder="Search by brand..."
+            value={brand}
+            onChange={handleBrandChange}
+            className="border px-4 py-2 rounded w-full"
+          />
+        </div>
+
+        <div className="flex gap-4">
+          {/* Fuel type filter */}
+          <select
+            value={fuelType}
+            onChange={handleFuelTypeChange}
+            className="border px-4 py-2 rounded"
+          >
+            <option value="">Select Fuel Type</option>
+            <option value="Electric">Electric</option>
+            <option value="Gasoline">Gasoline</option>
+            <option value="Hybrid">Hybrid</option>
+          </select>
+
+          {/* Price Range filter */}
+          <div className="flex gap-2">
+            <input
+              type="number"
+              name="min"
+              value={priceRange.min}
+              onChange={handlePriceRangeChange}
+              className="border px-4 py-2 rounded"
+              placeholder="Min Price"
+            />
+            <input
+              type="number"
+              name="max"
+              value={priceRange.max}
+              onChange={handlePriceRangeChange}
+              className="border px-4 py-2 rounded"
+              placeholder="Max Price"
+            />
+          </div>
+
+          {/* Seating Capacity filter */}
+          <select
+            value={seatingCapacity}
+            onChange={handleSeatingCapacityChange}
+            className="border px-4 py-2 rounded"
+          >
+            <option value={0}>Seating Capacity</option>
+            <option value={2}>2</option>
+            <option value={4}>4</option>
+            <option value={5}>5</option>
+            <option value={7}>7</option>
+          </select>
+        </div>
+
         <Link to="/wishlist" className="text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded">
           View Wishlist
         </Link>
       </div>
+
       <CarList cars={filteredCars} />
     </div>
+    </>
   );
 };
 
