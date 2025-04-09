@@ -1,38 +1,39 @@
+// src/App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { useTheme } from './context/ThemeContext'; 
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import CarDetailsPage from './pages/CarDetailsPage';
 import WishlistPage from './pages/WishlistPage';
 
 function App() {
-  return (
-    <Router> {/* Router should wrap the entire app */}
-      <AppContent />
-    </Router>
-  );
-}
-
-function AppContent() {
-  const navigate = useNavigate();  
-
-  const handleClick = () => {
-    navigate('/');  // Navigate to the home page when the <h1> is clicked
-  };
+  const { theme, toggleTheme } = useTheme();  // Access theme and toggleTheme from context
 
   return (
     <>
-      <h1 
+      <h1
         className="font-extrabold text-4xl flex justify-center cursor-pointer"
-        onClick={handleClick} 
+        onClick={() => window.location.href = '/'} // Navigate to home when clicked
       >
         Car Finder App
       </h1>
+      
+      <div className="flex justify-center mt-4">
+        <button
+          onClick={toggleTheme}
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          Switch to {theme === 'light' ? 'Dark' : 'Light'} Mode
+        </button>
+      </div>
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/car/:id" element={<CarDetailsPage />} />
-        <Route path="/wishlist" element={<WishlistPage />} />
-      </Routes>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/car/:id" element={<CarDetailsPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+        </Routes>
+      </Router>
     </>
   );
 }
