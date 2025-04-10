@@ -8,11 +8,11 @@ const Home = () => {
   const [filteredCars, setFilteredCars] = useState([]);
   const [brand, setBrand] = useState('');
   const [fuelType, setFuelType] = useState('');
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' }); // changed to string
   const [seatingCapacity, setSeatingCapacity] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch car data
+  // Fetch car data
   useEffect(() => {
     const fetchCars = async () => {
       try {
@@ -29,7 +29,7 @@ const Home = () => {
     fetchCars();
   }, []);
 
-  // ✅ Filter handlers
+  // Handlers
   const handleBrandChange = (e) => {
     setBrand(e.target.value);
   };
@@ -42,7 +42,7 @@ const Home = () => {
     const { name, value } = e.target;
     setPriceRange((prev) => ({
       ...prev,
-      [name]: Number(value),
+      [name]: value,
     }));
   };
 
@@ -50,12 +50,16 @@ const Home = () => {
     setSeatingCapacity(Number(e.target.value));
   };
 
-  // ✅ Apply filters when any input changes
+  // Apply filters
   useEffect(() => {
     const filtered = cars.filter((car) => {
       const matchesBrand = car.brand.toLowerCase().includes(brand.toLowerCase());
       const matchesFuelType = fuelType ? car.fuelType === fuelType : true;
-      const matchesPrice = car.price >= priceRange.min && car.price <= priceRange.max;
+
+      const min = priceRange.min === '' ? 0 : Number(priceRange.min);
+      const max = priceRange.max === '' ? Infinity : Number(priceRange.max);
+      const matchesPrice = car.price >= min && car.price <= max;
+
       const matchesSeating = seatingCapacity ? car.seatingCapacity === seatingCapacity : true;
 
       return matchesBrand && matchesFuelType && matchesPrice && matchesSeating;
@@ -72,7 +76,7 @@ const Home = () => {
         </div>
       ) : (
         <>
-          {/* 🔍 Filter Section */}
+          {/* Filters */}
           <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
             <div className="w-full max-w-sm">
               <input
@@ -134,7 +138,7 @@ const Home = () => {
             </Link>
           </div>
 
-          {/* 🚗 Car List Section */}
+          {/* Car List */}
           <CarList cars={filteredCars} />
         </>
       )}
